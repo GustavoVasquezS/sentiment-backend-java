@@ -20,7 +20,7 @@ public class ExecptionHandler {
         for (ConstraintViolation<?> constraint : c.getConstraintViolations()) {
             valor.add(constraint.getMessage());
         }
-       map.put("Error",valor);
+        map.put("Error", valor);
         return new ResponseEntity<>(map, HttpStatus.BAD_REQUEST);
     }
 }
