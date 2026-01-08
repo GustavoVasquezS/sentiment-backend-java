@@ -10,3 +10,4 @@ import org.springframework.context.annotation.Configuration;
 public class EndPointConfg {
    private String url;
 }
+ 
