@@ -2,13 +2,13 @@ package com.project.sentimentapi.service;
 
 import com.project.sentimentapi.configuration.ConectarApi;
 import com.project.sentimentapi.dto.ResponseDto;
+import com.project.sentimentapi.dto.SentimentsResponseDto;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClientRequestException;
+import tools.jackson.databind.ObjectMapper;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 
 @Service
 public class SentimentServiceImplement implements SentimentService {
@@ -19,18 +19,30 @@ public class SentimentServiceImplement implements SentimentService {
         try {
             Map<String, String> request = new HashMap<>();
             request.put("text", texto);
-            ResponseDto responseDto = conectarApi.client().post().uri("/sentiment").bodyValue(request).
+            ResponseDto responseDto = conectarApi.client().post().uri("/sentiment").
+                    bodyValue(request).
                     retrieve().bodyToMono(ResponseDto.class).block();
-            StringBuilder stringBuilder = new StringBuilder();
-            for (int i = 1; i <= responseDto.getEstrellas(); i++) {
-                if (i != responseDto.getEstrellas()) {
-                    stringBuilder.append("\u2605" + " ");
-                } else {
-                    stringBuilder.append("\u2605");
-                }
+            return Optional.of(responseDto);
+        } catch (WebClientRequestException e) {
+            return Optional.empty();
+        }
+    }
+
+    public Optional<SentimentsResponseDto> consultarSentimientos(String texto) {
+        try {
+            String[] textoConcatenado = texto.split("\n");
+            List<String> textoGuardado = new ArrayList<>();
+            for (String mostrar : textoConcatenado) {
+                textoGuardado.add(mostrar);
+                System.out.println(mostrar);
             }
-            responseDto.setCalificación(stringBuilder.toString());
-            System.out.println(responseDto.getEstrellas());
+            Map<String, List<String>> request = new HashMap<>();
+            request.put("texts", textoGuardado);
+            ObjectMapper objectMapper = new ObjectMapper();
+            String string = conectarApi.client().post().uri("/sentiment/batch").
+                    bodyValue(request).
+                    retrieve().bodyToMono(String.class).block();
+            SentimentsResponseDto responseDto = objectMapper.readValue(string, SentimentsResponseDto.class);
             return Optional.of(responseDto);
         } catch (WebClientRequestException e) {
             return Optional.empty();
