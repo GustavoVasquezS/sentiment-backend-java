@@ -11,8 +11,5 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class ResponseDto {
     private String prevision;
-   // @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
-    //private Integer estrellas;
     private Double probabilidad;
-   // private String calificación;
 }

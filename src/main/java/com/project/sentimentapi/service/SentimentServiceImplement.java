@@ -34,7 +34,6 @@ public class SentimentServiceImplement implements SentimentService {
             List<String> textoGuardado = new ArrayList<>();
             for (String mostrar : textoConcatenado) {
                 textoGuardado.add(mostrar);
-                System.out.println(mostrar);
             }
             Map<String, List<String>> request = new HashMap<>();
             request.put("texts", textoGuardado);
