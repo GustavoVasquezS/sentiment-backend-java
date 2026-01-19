@@ -29,7 +29,6 @@ public class UserServiceImplement implements UserService {
 
         String claveHasheada = BCrypt.hashpw(userDtoRegistro.getContraseña(), BCrypt.gensalt());
 
-        // 4. Crea y guarda el usuario
         User nuevoUsuario = new User(
                 userDtoRegistro.getNombre(),
                 userDtoRegistro.getApellido(),
@@ -40,13 +39,19 @@ public class UserServiceImplement implements UserService {
 
         userRepository.save(nuevoUsuario);
     }
-    public Optional<UserDtoLogin> login(String correo, String contraseña) {
+    public Optional<UserDtoLogin> login(UserDtoRegistro userDtoRegistro) {
         List<User> listaDeUsuarios = userRepository.findAll();
+        System.out.println("entrando");
         for (User datos : listaDeUsuarios) {
-            if (datos.getCorreo().equals(correo)) {
-                if (BCrypt.checkpw(contraseña, datos.getContraseña())) {
+            if (datos.getCorreo().equals(userDtoRegistro.getCorreo())) {
+                System.out.println("Test 1");
+                System.out.println(userDtoRegistro.getCorreo());
+                System.out.println(userDtoRegistro.getContraseña());
+                if (BCrypt.checkpw(userDtoRegistro.getContraseña(),datos.getContraseña())) {
                     System.out.println("Ingreso Exitoso!");
                     return Optional.of(new UserDtoLogin(datos.getUsuarioID(), datos.getNombre(), datos.getApellido(), datos.getCorreo()));
+                } else {
+                    return Optional.empty();
                 }
             }
         }

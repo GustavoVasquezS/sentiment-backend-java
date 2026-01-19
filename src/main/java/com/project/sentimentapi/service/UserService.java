@@ -8,5 +8,5 @@ import java.util.Optional;
 
 public interface UserService {
     void registrarUsuario(UserDtoRegistro userDtoRegistro);
-    Optional<UserDtoLogin> login (String correo, String contraseña);
+    Optional<UserDtoLogin> login (UserDtoRegistro userDtoRegistro);
 }

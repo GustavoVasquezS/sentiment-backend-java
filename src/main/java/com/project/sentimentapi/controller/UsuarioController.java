@@ -11,14 +11,19 @@ import org.springframework.web.bind.annotation.*;
 public class UsuarioController {
     @Autowired
     UserService userService;
+
     @PostMapping
-    public ResponseEntity<?> registrarUsuario(@RequestBody UserDtoRegistro userDtoRegistro){
-       userService.registrarUsuario(userDtoRegistro);
-       return ResponseEntity.ok().build();
-    }
-    @GetMapping("/{correo}/{contraseña}")
-    public ResponseEntity<?> loginUsuario(@PathVariable String correo, @PathVariable String contraseña){
-        userService.login(correo,contraseña);
+    public ResponseEntity<?> registrarUsuario(@RequestBody UserDtoRegistro userDtoRegistro) {
+        userService.registrarUsuario(userDtoRegistro);
         return ResponseEntity.ok().build();
+    }
+
+    @PatchMapping("/login")
+    public ResponseEntity<?> loginUsuario(@RequestBody UserDtoRegistro userDtoRegistro) {
+        if (!userService.login(userDtoRegistro).isEmpty()) {
+            return ResponseEntity.ok().build();
+        } else {
+            return ResponseEntity.notFound().build();
+        }
     }
 }
