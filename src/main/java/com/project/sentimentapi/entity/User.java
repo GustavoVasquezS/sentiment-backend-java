@@ -24,11 +24,14 @@ public class User {
     private String correo;
     @Column(nullable = false)
     private String contraseña;
-    @OneToOne(cascade = CascadeType.ALL)
-    private Rol rol;
-    @OneToMany(cascade = CascadeType.ALL, mappedBy = "fk")
+
+    @ManyToMany(cascade = CascadeType.ALL,fetch = FetchType.LAZY)
+    @JoinTable(name = "User_rol",joinColumns = @JoinColumn(name = "user_id", referencedColumnName = "usuario_id"),
+    inverseJoinColumns = @JoinColumn(name = "rol_Id",referencedColumnName = "rol_id"))
+    private List<Rol> rol;
+    @OneToMany(cascade = CascadeType.MERGE, mappedBy = "fk")
     private List<Interaccion> interacciones;
-    public User(String nombre, String apellido,String contraseña, String correo, Rol rol){
+    public User(String nombre, String apellido,String contraseña, String correo, List<Rol> rol){
         this.nombre = nombre;
         this.apellido = apellido;
         this.correo = correo;

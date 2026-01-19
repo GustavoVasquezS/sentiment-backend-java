@@ -6,10 +6,12 @@ import com.project.sentimentapi.entity.Rol;
 import com.project.sentimentapi.entity.User;
 import com.project.sentimentapi.repository.RolRepository;
 import com.project.sentimentapi.repository.UserRepository;
+import jakarta.transaction.Transactional;
 import org.mindrot.jbcrypt.BCrypt;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -21,12 +23,23 @@ public class UserServiceImplement implements UserService {
     RolRepository rolrepository;
 
     public void registrarUsuario(UserDtoRegistro userDtoRegistro) {
-        System.out.println(userDtoRegistro.getNombre());
         Optional<Rol> rol = rolrepository.findById(2);
-        String claveHasheada = BCrypt.hashpw(userDtoRegistro.getContraseña(), BCrypt.gensalt());
-        userRepository.save(new User(userDtoRegistro.getNombre(), userDtoRegistro.getApellido(), claveHasheada, userDtoRegistro.getCorreo(), rol.get()));
-    }
+        List<Rol> roles = new ArrayList<>();
+        roles.add(rol.get());
 
+        String claveHasheada = BCrypt.hashpw(userDtoRegistro.getContraseña(), BCrypt.gensalt());
+
+        // 4. Crea y guarda el usuario
+        User nuevoUsuario = new User(
+                userDtoRegistro.getNombre(),
+                userDtoRegistro.getApellido(),
+                claveHasheada,
+                userDtoRegistro.getCorreo(),
+                roles
+        );
+
+        userRepository.save(nuevoUsuario);
+    }
     public Optional<UserDtoLogin> login(String correo, String contraseña) {
         List<User> listaDeUsuarios = userRepository.findAll();
         for (User datos : listaDeUsuarios) {
