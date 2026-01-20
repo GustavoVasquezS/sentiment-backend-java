@@ -1,7 +1,6 @@
 package com.project.sentimentapi.entity;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -27,16 +26,21 @@ public class User {
 
     @ManyToMany(cascade = CascadeType.ALL,fetch = FetchType.LAZY)
     @JoinTable(name = "User_rol",joinColumns = @JoinColumn(name = "user_id", referencedColumnName = "usuario_id"),
-    inverseJoinColumns = @JoinColumn(name = "rol_Id",referencedColumnName = "rol_id"))
+            inverseJoinColumns = @JoinColumn(name = "rol_Id",referencedColumnName = "rol_id"))
     private List<Rol> rol;
+
     @OneToMany(cascade = CascadeType.MERGE, mappedBy = "fk")
     private List<Interaccion> interacciones;
+
+    // NUEVA RELACIÓN: Un usuario tiene muchas sesiones
+    @OneToMany(cascade = CascadeType.ALL, mappedBy = "usuario")
+    private List<Sesion> sesiones;
+
     public User(String nombre, String apellido,String contraseña, String correo, List<Rol> rol){
         this.nombre = nombre;
         this.apellido = apellido;
         this.correo = correo;
         this.contraseña = contraseña;
         this.rol = rol;
-        }
     }
-
+}

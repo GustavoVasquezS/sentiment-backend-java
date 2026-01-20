@@ -1,12 +1,12 @@
 package com.project.sentimentapi.service;
 
-import com.project.sentimentapi.dto.UserDtoLogin;
+import com.project.sentimentapi.dto.LoginResponseDto;
 import com.project.sentimentapi.dto.UserDtoRegistro;
 import com.project.sentimentapi.entity.Rol;
 import com.project.sentimentapi.entity.User;
 import com.project.sentimentapi.repository.RolRepository;
 import com.project.sentimentapi.repository.UserRepository;
-import jakarta.transaction.Transactional;
+import com.project.sentimentapi.security.JwtUtil;
 import org.mindrot.jbcrypt.BCrypt;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -17,10 +17,15 @@ import java.util.Optional;
 
 @Service
 public class UserServiceImplement implements UserService {
+
     @Autowired
     UserRepository userRepository;
+
     @Autowired
     RolRepository rolrepository;
+
+    @Autowired
+    JwtUtil jwtUtil;
 
     public void registrarUsuario(UserDtoRegistro userDtoRegistro) {
         Optional<Rol> rol = rolrepository.findById(2);
@@ -39,22 +44,27 @@ public class UserServiceImplement implements UserService {
 
         userRepository.save(nuevoUsuario);
     }
-    public Optional<UserDtoLogin> login(UserDtoRegistro userDtoRegistro) {
-        List<User> listaDeUsuarios = userRepository.findAll();
-        System.out.println("entrando");
-        for (User datos : listaDeUsuarios) {
-            if (datos.getCorreo().equals(userDtoRegistro.getCorreo())) {
-                System.out.println("Test 1");
-                System.out.println(userDtoRegistro.getCorreo());
-                System.out.println(userDtoRegistro.getContraseña());
-                if (BCrypt.checkpw(userDtoRegistro.getContraseña(),datos.getContraseña())) {
-                    System.out.println("Ingreso Exitoso!");
-                    return Optional.of(new UserDtoLogin(datos.getUsuarioID(), datos.getNombre(), datos.getApellido(), datos.getCorreo()));
-                } else {
-                    return Optional.empty();
-                }
+
+    public Optional<LoginResponseDto> login(UserDtoRegistro userDtoRegistro) {
+        Optional<User> usuarioOpt = userRepository.findByCorreo(userDtoRegistro.getCorreo());
+
+        if (usuarioOpt.isPresent()) {
+            User usuario = usuarioOpt.get();
+
+            if (BCrypt.checkpw(userDtoRegistro.getContraseña(), usuario.getContraseña())) {
+                // Generar token JWT
+                String token = jwtUtil.generateToken(usuario.getCorreo(), usuario.getUsuarioID());
+
+                return Optional.of(new LoginResponseDto(
+                        usuario.getUsuarioID(),
+                        usuario.getNombre(),
+                        usuario.getApellido(),
+                        usuario.getCorreo(),
+                        token
+                ));
             }
         }
+
         return Optional.empty();
     }
 }

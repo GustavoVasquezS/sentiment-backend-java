@@ -18,12 +18,10 @@ public class UsuarioController {
         return ResponseEntity.ok().build();
     }
 
-    @PatchMapping("/login")
+    @PostMapping("/login")
     public ResponseEntity<?> loginUsuario(@RequestBody UserDtoRegistro userDtoRegistro) {
-        if (!userService.login(userDtoRegistro).isEmpty()) {
-            return ResponseEntity.ok(userService.login(userDtoRegistro));
-        } else {
-            return ResponseEntity.notFound().build();
-        }
+        return userService.login(userDtoRegistro)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.status(401).build());
     }
 }
