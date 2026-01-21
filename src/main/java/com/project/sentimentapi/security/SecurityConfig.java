@@ -4,6 +4,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.Ordered;
 
 @Configuration
 public class SecurityConfig {
@@ -15,8 +16,13 @@ public class SecurityConfig {
     public FilterRegistrationBean<JwtAuthenticationFilter> jwtFilter() {
         FilterRegistrationBean<JwtAuthenticationFilter> registrationBean = new FilterRegistrationBean<>();
         registrationBean.setFilter(jwtAuthenticationFilter);
-        registrationBean.addUrlPatterns("/project/api/v2/*");
-        registrationBean.setOrder(1);
+
+        // ✅ IMPORTANTE: Aplicar a TODAS las rutas
+        registrationBean.addUrlPatterns("/*");
+
+        // ✅ IMPORTANTE: Ejecutar ANTES de otros filtros
+        registrationBean.setOrder(Ordered.HIGHEST_PRECEDENCE);
+
         return registrationBean;
     }
 }

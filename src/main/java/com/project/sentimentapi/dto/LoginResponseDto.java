@@ -10,5 +10,5 @@ public class LoginResponseDto {
     private String nombre;
     private String apellido;
     private String correo;
-    private String token;
+    private String token; // ✅ TOKEN JWT
 }

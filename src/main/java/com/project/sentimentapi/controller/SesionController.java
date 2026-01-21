@@ -22,17 +22,27 @@ public class SesionController {
             HttpServletRequest request,
             @RequestBody SesionDto sesionDto) {
 
-        // Extraer usuarioId del request (inyectado por JwtAuthenticationFilter)
         Integer usuarioId = (Integer) request.getAttribute("usuarioId");
 
+        // ✅ VALIDACIÓN EXPLÍCITA
+        if (usuarioId == null) {
+            System.err.println("❌ ERROR: usuarioId es NULL en /sesion");
+            return ResponseEntity.status(401).body("No autorizado - Token inválido o faltante");
+        }
+
+        System.out.println("✅ Usuario autenticado con ID: " + usuarioId);
         sesionService.guardarSesion(sesionDto, usuarioId);
         return ResponseEntity.ok().build();
     }
 
     @GetMapping
     public ResponseEntity<List<SesionDto>> obtenerSesiones(HttpServletRequest request) {
-        // Extraer usuarioId del request (inyectado por JwtAuthenticationFilter)
         Integer usuarioId = (Integer) request.getAttribute("usuarioId");
+
+        if (usuarioId == null) {
+            System.err.println("❌ ERROR: usuarioId es NULL en /sesion GET");
+            return ResponseEntity.status(401).build();
+        }
 
         List<SesionDto> sesiones = sesionService.obtenerSesionesPorUsuario(usuarioId);
         return ResponseEntity.ok(sesiones);
@@ -40,8 +50,12 @@ public class SesionController {
 
     @GetMapping("/historial")
     public ResponseEntity<List<SesionDto>> obtenerHistorialSesiones(HttpServletRequest request) {
-        // Extraer usuarioId del request (inyectado por JwtAuthenticationFilter)
         Integer usuarioId = (Integer) request.getAttribute("usuarioId");
+
+        if (usuarioId == null) {
+            System.err.println("❌ ERROR: usuarioId es NULL en /sesion/historial");
+            return ResponseEntity.status(401).build();
+        }
 
         List<SesionDto> sesiones = sesionService.obtenerSesionesPorUsuario(usuarioId);
         return ResponseEntity.ok(sesiones);
@@ -52,18 +66,34 @@ public class SesionController {
             HttpServletRequest request,
             @RequestBody ComentariosRequestDto comentariosRequest) {
 
-        // Extraer usuarioId del request (inyectado por JwtAuthenticationFilter)
+        // ✅ VALIDACIÓN EXPLÍCITA
         Integer usuarioId = (Integer) request.getAttribute("usuarioId");
 
-        SesionDto sesion = sesionService.analizarYGuardarComentarios(
-                comentariosRequest.getComentarios(),
-                usuarioId
-        );
+        if (usuarioId == null) {
+            System.err.println("❌ ERROR: usuarioId es NULL en /sesion/analizar");
+            System.err.println("❌ Headers recibidos: " + request.getHeader("Authorization"));
+            return ResponseEntity.status(401).body("No autorizado - Token inválido o faltante");
+        }
 
-        if (sesion != null) {
-            return ResponseEntity.ok(sesion);
-        } else {
-            return ResponseEntity.status(502).body("Error al analizar los comentarios");
+        System.out.println("✅ Analizando comentarios para usuario ID: " + usuarioId);
+
+        try {
+            SesionDto sesion = sesionService.analizarYGuardarComentarios(
+                    comentariosRequest.getComentarios(),
+                    usuarioId
+            );
+
+            if (sesion != null) {
+                System.out.println("✅ Sesión guardada exitosamente: " + sesion.getSesionId());
+                return ResponseEntity.ok(sesion);
+            } else {
+                System.err.println("❌ ERROR: Servicio retornó null");
+                return ResponseEntity.status(502).body("Error al analizar los comentarios");
+            }
+        } catch (Exception e) {
+            System.err.println("❌ EXCEPCIÓN en analizarComentarios:");
+            e.printStackTrace();
+            return ResponseEntity.status(500).body("Error interno: " + e.getMessage());
         }
     }
 }
