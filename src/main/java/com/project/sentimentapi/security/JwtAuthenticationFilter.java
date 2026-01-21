@@ -29,34 +29,29 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         System.out.println("🔍 JWT Filter - Path: " + requestPath + " | Method: " + method);
 
-        // ✅ PERMITIR peticiones OPTIONS (CORS preflight)
-        if ("OPTIONS".equalsIgnoreCase(method)) {
-            System.out.println("✅ OPTIONS request - Permitiendo sin validación JWT");
-            filterChain.doFilter(request, response);
-            return;
-        }
+        // ✅ CORS ya manejó OPTIONS, aquí solo validamos lógica de negocio
 
-        // Permitir acceso sin token a login y registro
-        if (requestPath.contains("/usuario/login") ||
-                (requestPath.contains("/usuario") && method.equals("POST") && !requestPath.contains("/login"))) {
+        // ✅ RUTAS PÚBLICAS (sin token)
+        boolean isPublicRoute =
+                requestPath.contains("/usuario/login") ||
+                        (requestPath.contains("/usuario") && "POST".equals(method) && !requestPath.contains("/login")) ||
+                        requestPath.contains("/sentiment/analyze");
+
+        if (isPublicRoute) {
             System.out.println("✅ Ruta pública - Sin validación JWT");
             filterChain.doFilter(request, response);
             return;
         }
 
+        // ✅ RUTAS PROTEGIDAS (requieren token)
         String authHeader = request.getHeader("Authorization");
-        System.out.println("🔑 Authorization Header: " + authHeader);
 
         if (authHeader != null && authHeader.startsWith("Bearer ")) {
             String token = authHeader.substring(7);
-            System.out.println("🎫 Token extraído (primeros 20 chars): " + token.substring(0, Math.min(20, token.length())) + "...");
 
             try {
                 String correo = jwtUtil.extractCorreo(token);
                 Integer usuarioId = jwtUtil.extractUsuarioId(token);
-
-                System.out.println("📧 Correo del token: " + correo);
-                System.out.println("🆔 Usuario ID del token: " + usuarioId);
 
                 if (userRepository.findByCorreo(correo).isPresent() &&
                         jwtUtil.validateToken(token, correo)) {
@@ -64,25 +59,19 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                     request.setAttribute("usuarioId", usuarioId);
                     request.setAttribute("correo", correo);
 
-                    System.out.println("✅ Token válido - Usuario autenticado");
-
+                    System.out.println("✅ Token válido - Usuario: " + correo);
                     filterChain.doFilter(request, response);
                     return;
-                } else {
-                    System.err.println("❌ Token inválido o usuario no encontrado");
                 }
             } catch (Exception e) {
-                System.err.println("❌ Error al procesar token: " + e.getMessage());
-                e.printStackTrace();
+                System.err.println("❌ Error al validar token: " + e.getMessage());
                 response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
                 response.getWriter().write("Token inválido o expirado");
                 return;
             }
-        } else {
-            System.err.println("❌ No se encontró header Authorization o no empieza con 'Bearer '");
         }
 
         response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-        response.getWriter().write("Acceso no autorizado. Token requerido");
+        response.getWriter().write("Acceso no autorizado");
     }
 }
