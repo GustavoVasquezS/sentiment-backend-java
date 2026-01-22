@@ -1,7 +1,9 @@
 package com.project.sentimentapi.service;
 
+import com.project.sentimentapi.dto.ComentarioDto;
 import com.project.sentimentapi.dto.ResponseDto;
 import com.project.sentimentapi.dto.SesionDto;
+import com.project.sentimentapi.entity.Comentario;
 import com.project.sentimentapi.entity.Sesion;
 import com.project.sentimentapi.entity.User;
 import com.project.sentimentapi.repository.SesionRepository;
@@ -10,6 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -53,15 +56,23 @@ public class SesionServiceImplement implements SesionService {
             List<Sesion> sesiones = sesionRepository.findByUsuarioOrderByFechaDesc(usuario.get());
 
             return sesiones.stream()
-                    .map(sesion -> new SesionDto(
-                            sesion.getSesionId(),
-                            sesion.getFecha().toString(),
-                            sesion.getAvgScore(),
-                            sesion.getTotal(),
-                            sesion.getPositivos(),
-                            sesion.getNegativos(),
-                            sesion.getNeutrales()
-                    ))
+                    .map(sesion -> {
+                        // ✅ Mapear comentarios a DTOs
+                        List<ComentarioDto> comentariosDto = sesion.getComentarios().stream()
+                                .map(c -> new ComentarioDto(c.getTexto(), c.getSentimiento(), c.getProbabilidad()))
+                                .collect(Collectors.toList());
+
+                        return new SesionDto(
+                                sesion.getSesionId(),
+                                sesion.getFecha().toString(),
+                                sesion.getAvgScore(),
+                                sesion.getTotal(),
+                                sesion.getPositivos(),
+                                sesion.getNegativos(),
+                                sesion.getNeutrales(),
+                                comentariosDto // ✅ NUEVO: Incluir comentarios
+                        );
+                    })
                     .collect(Collectors.toList());
         }
 
@@ -112,9 +123,8 @@ public class SesionServiceImplement implements SesionService {
         }
 
         double avgScore = total > 0 ? sumaScores / total : 0.0;
-        String fechaActual = LocalDate.now().toString();
 
-        // Crear y guardar la sesión
+        // ✅ CREAR SESIÓN
         Sesion sesion = new Sesion(
                 LocalDate.now(),
                 avgScore,
@@ -125,17 +135,46 @@ public class SesionServiceImplement implements SesionService {
                 usuario.get()
         );
 
+        // ✅ GUARDAR CADA COMENTARIO ANALIZADO
+        List<Comentario> comentariosEntidades = new ArrayList<>();
+        List<ComentarioDto> comentariosDto = new ArrayList<>();
+
+        for (int i = 0; i < comentarios.size(); i++) {
+            String textoComentario = comentarios.get(i);
+            ResponseDto resultado = resultados.get(i);
+
+            Comentario comentarioEntity = new Comentario(
+                    textoComentario,
+                    resultado.getPrevision(),
+                    resultado.getProbabilidad(),
+                    sesion
+            );
+
+            comentariosEntidades.add(comentarioEntity);
+
+            // ✅ Para el DTO de respuesta
+            comentariosDto.add(new ComentarioDto(
+                    textoComentario,
+                    resultado.getPrevision(),
+                    resultado.getProbabilidad()
+            ));
+        }
+
+        sesion.setComentarios(comentariosEntidades);
+
+        // ✅ GUARDAR SESIÓN CON COMENTARIOS
         Sesion sesionGuardada = sesionRepository.save(sesion);
 
-        // Retornar DTO con el ID generado
+        // ✅ RETORNAR DTO CON COMENTARIOS INDIVIDUALES
         return new SesionDto(
                 sesionGuardada.getSesionId(),
-                fechaActual,
+                LocalDate.now().toString(),
                 avgScore,
                 total,
                 positivos,
                 negativos,
-                neutrales
+                neutrales,
+                comentariosDto // ✅ AQUÍ ESTÁN LOS COMENTARIOS INDIVIDUALES
         );
     }
 }

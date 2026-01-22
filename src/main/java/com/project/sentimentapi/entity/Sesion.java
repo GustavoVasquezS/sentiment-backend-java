@@ -5,6 +5,8 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Data
@@ -38,6 +40,10 @@ public class Sesion {
     @ManyToOne
     @JoinColumn(name = "usuario_id", nullable = false)
     private User usuario;
+
+    // ✅ NUEVA RELACIÓN: Una sesión tiene muchos comentarios
+    @OneToMany(cascade = CascadeType.ALL, mappedBy = "sesion", fetch = FetchType.LAZY)
+    private List<Comentario> comentarios = new ArrayList<>();
 
     public Sesion(LocalDate fecha, Double avgScore, Integer total,
                   Integer positivos, Integer negativos, Integer neutrales, User usuario) {

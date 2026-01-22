@@ -5,6 +5,8 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.List;
+
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
@@ -20,4 +22,7 @@ public class SesionDto {
     private Integer positivos;
     private Integer negativos;
     private Integer neutrales;
+
+    // ✅ NUEVO: Lista de comentarios analizados
+    private List<ComentarioDto> comentarios;
 }
