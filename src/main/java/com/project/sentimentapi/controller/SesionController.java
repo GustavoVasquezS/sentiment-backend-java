@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.HashMap;
 import java.util.List;
 
 @RestController
@@ -94,6 +95,33 @@ public class SesionController {
             System.err.println("❌ EXCEPCIÓN en analizarComentarios:");
             e.printStackTrace();
             return ResponseEntity.status(500).body("Error interno: " + e.getMessage());
+        }
+    }
+    @PostMapping("/analizar-con-producto")
+    public ResponseEntity<?> analizarConProducto(
+            HttpServletRequest request, @RequestBody HashMap<String, Object> body
+    ) {
+        Integer usuarioId = (Integer) request.getAttribute("usuarioId");
+
+        if (usuarioId == null) {
+            return ResponseEntity.status(401).body("No autorizado");
+        }
+
+        try {
+            @SuppressWarnings("unchecked")
+            List<String> comentarios = (List<String>) body.get("comentarios");
+            Integer productoId = (Integer) body.get("productoId");
+
+            SesionDto sesion = sesionService.analizarYGuardarConProducto(
+                    comentarios,
+                    usuarioId,
+                    productoId
+            );
+
+            return ResponseEntity.ok(sesion);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(500).body("Error: " + e.getMessage());
         }
     }
 }

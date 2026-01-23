@@ -45,6 +45,9 @@ public class Sesion {
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "sesion", fetch = FetchType.LAZY)
     private List<Comentario> comentarios = new ArrayList<>();
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "producto_id") // ← NULLABLE (puede ser análisis sin producto)
+    private Producto producto;
     public Sesion(LocalDate fecha, Double avgScore, Integer total,
                   Integer positivos, Integer negativos, Integer neutrales, User usuario) {
         this.fecha = fecha;

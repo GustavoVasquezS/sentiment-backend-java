@@ -22,7 +22,16 @@ public class SesionDto {
     private Integer positivos;
     private Integer negativos;
     private Integer neutrales;
+// ✅ AGREGAR ESTOS CAMPOS A SesionDto EXISTENTE
 
+    private Integer productoId;
+    private String nombreProducto;
+
+    // ✅ Estadísticas del producto en ESTA sesión
+    private ProductoMencionesDto productoMenciones;
     // ✅ NUEVO: Lista de comentarios analizados
     private List<ComentarioDto> comentarios;
+
+    public SesionDto(Integer sesionId, String string, Double avgScore, Integer total, Integer positivos, Integer negativos, Integer neutrales, List<ComentarioDto> comentariosDto) {
+    }
 }

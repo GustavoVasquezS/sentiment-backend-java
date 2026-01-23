@@ -29,9 +29,6 @@ public class User {
             inverseJoinColumns = @JoinColumn(name = "rol_Id",referencedColumnName = "rol_id"))
     private List<Rol> rol;
 
-    @OneToMany(cascade = CascadeType.MERGE, mappedBy = "fk")
-    private List<Interaccion> interacciones;
-
     // NUEVA RELACIÓN: Un usuario tiene muchas sesiones
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "usuario")
     private List<Sesion> sesiones;
