@@ -90,105 +90,122 @@ import static tools.jackson.databind.type.LogicalType.Map;
 
             return List.of();
         }
+    @Override
+    @Transactional
+    public SesionDto analizarYGuardarComentarios(List<String> comentarios, Integer usuarioId) {
+        System.out.println("✅ Analizando comentarios para usuario ID: " + usuarioId);
 
-        @Override
-        public SesionDto analizarYGuardarComentarios(List<String> comentarios, Integer usuarioId) {
-            Optional<User> usuario = userRepository.findById(usuarioId);
+        Optional<User> usuario = userRepository.findById(usuarioId);
 
-            if (usuario.isEmpty()) {
-                return null;
-            }
-
-            // Concatenar todos los comentarios con salto de línea
-            String textoCompleto = String.join("\n", comentarios);
-
-            // Llamar al servicio de análisis batch
-            Optional<com.project.sentimentapi.dto.SentimentsResponseDto> responseOpt =
-                    sentimentService.consultarSentimientos(textoCompleto);
-
-            if (responseOpt.isEmpty()) {
-                return null;
-            }
-
-            List<ResponseDto> resultados = responseOpt.get().getResults();
-
-            // Calcular métricas
-            int total = resultados.size();
-            int positivos = 0;
-            int negativos = 0;
-            int neutrales = 0;
-            double sumaScores = 0.0;
-
-            for (ResponseDto resultado : resultados) {
-                String sentimiento = resultado.getPrevision();
-                double probabilidad = resultado.getProbabilidad();
-
-                sumaScores += probabilidad;
-
-                if (sentimiento.equalsIgnoreCase("Positivo")) {
-                    positivos++;
-                } else if (sentimiento.equalsIgnoreCase("Negativo")) {
-                    negativos++;
-                } else {
-                    neutrales++;
-                }
-            }
-
-            double avgScore = total > 0 ? sumaScores / total : 0.0;
-
-            // ✅ CREAR SESIÓN
-            Sesion sesion = new Sesion(
-                    LocalDate.now(),
-                    avgScore,
-                    total,
-                    positivos,
-                    negativos,
-                    neutrales,
-                    usuario.get()
-            );
-
-            // ✅ GUARDAR CADA COMENTARIO ANALIZADO
-            List<Comentario> comentariosEntidades = new ArrayList<>();
-            List<ComentarioDto> comentariosDto = new ArrayList<>();
-
-            for (int i = 0; i < comentarios.size(); i++) {
-                String textoComentario = comentarios.get(i);
-                ResponseDto resultado = resultados.get(i);
-
-                Comentario comentarioEntity = new Comentario(
-                        textoComentario,
-                        resultado.getPrevision(),
-                        resultado.getProbabilidad(),
-                        sesion
-                );
-
-                comentariosEntidades.add(comentarioEntity);
-
-                // ✅ Para el DTO de respuesta
-                comentariosDto.add(new ComentarioDto(
-                        textoComentario,
-                        resultado.getPrevision(),
-                        resultado.getProbabilidad()
-                ));
-            }
-
-            sesion.setComentarios(comentariosEntidades);
-
-            // ✅ GUARDAR SESIÓN CON COMENTARIOS
-            Sesion sesionGuardada = sesionRepository.save(sesion);
-
-            // ✅ RETORNAR DTO CON COMENTARIOS INDIVIDUALES
-            return new SesionDto(
-                    sesionGuardada.getSesionId(),
-                    LocalDate.now().toString(),
-                    avgScore,
-                    total,
-                    positivos,
-                    negativos,
-                    neutrales,
-                    comentariosDto // ✅ AQUÍ ESTÁN LOS COMENTARIOS INDIVIDUALES
-            );
+        if (usuario.isEmpty()) {
+            System.err.println("❌ Usuario no encontrado con ID: " + usuarioId);
+            return null;
         }
+
+        // Concatenar todos los comentarios con salto de línea
+        String textoCompleto = String.join("\n", comentarios);
+
+        // Llamar al servicio de análisis batch
+        Optional<SentimentsResponseDto> responseOpt =
+                sentimentService.consultarSentimientos(textoCompleto);
+
+        if (responseOpt.isEmpty()) {
+            System.err.println("❌ Servicio de análisis retornó vacío");
+            return null;
+        }
+
+        List<ResponseDto> resultados = responseOpt.get().getResults();
+        System.out.println("📊 Análisis completado. Resultados: " + resultados.size());
+
+        // Calcular métricas
+        int total = resultados.size();
+        int positivos = 0;
+        int negativos = 0;
+        int neutrales = 0;
+        double sumaScores = 0.0;
+
+        for (ResponseDto resultado : resultados) {
+            String sentimiento = resultado.getPrevision();
+            double probabilidad = resultado.getProbabilidad();
+
+            sumaScores += probabilidad;
+
+            if (sentimiento.equalsIgnoreCase("Positivo")) {
+                positivos++;
+            } else if (sentimiento.equalsIgnoreCase("Negativo")) {
+                negativos++;
+            } else {
+                neutrales++;
+            }
+        }
+
+        double avgScore = total > 0 ? sumaScores / total : 0.0;
+
+        System.out.println("📈 Estadísticas calculadas:");
+        System.out.println("   Total: " + total);
+        System.out.println("   Positivos: " + positivos);
+        System.out.println("   Negativos: " + negativos);
+        System.out.println("   Neutrales: " + neutrales);
+        System.out.println("   Avg Score: " + avgScore);
+
+        // ✅ CREAR SESIÓN
+        Sesion sesion = new Sesion(
+                LocalDate.now(),
+                avgScore,
+                total,
+                positivos,
+                negativos,
+                neutrales,
+                usuario.get()
+        );
+
+        // ✅ GUARDAR CADA COMENTARIO ANALIZADO
+        List<Comentario> comentariosEntidades = new ArrayList<>();
+        List<ComentarioDto> comentariosDto = new ArrayList<>();
+
+        for (int i = 0; i < comentarios.size(); i++) {
+            String textoComentario = comentarios.get(i);
+            ResponseDto resultado = resultados.get(i);
+
+            Comentario comentarioEntity = new Comentario(
+                    textoComentario,
+                    resultado.getPrevision(),
+                    resultado.getProbabilidad(),
+                    sesion
+            );
+
+            comentariosEntidades.add(comentarioEntity);
+
+            // ✅ Para el DTO de respuesta
+            comentariosDto.add(new ComentarioDto(
+                    textoComentario,
+                    resultado.getPrevision(),
+                    resultado.getProbabilidad()
+            ));
+        }
+
+        sesion.setComentarios(comentariosEntidades);
+
+        // ✅ GUARDAR SESIÓN CON COMENTARIOS
+        Sesion sesionGuardada = sesionRepository.save(sesion);
+
+        System.out.println("✅ Sesión guardada exitosamente con ID: " + sesionGuardada.getSesionId());
+
+        // ✅ RETORNAR DTO CON TODA LA INFORMACIÓN
+        SesionDto sesionDto = new SesionDto();
+        sesionDto.setSesionId(sesionGuardada.getSesionId());
+        sesionDto.setFecha(LocalDate.now().toString());
+        sesionDto.setAvgScore(avgScore);
+        sesionDto.setTotal(total);
+        sesionDto.setPositivos(positivos);
+        sesionDto.setNegativos(negativos);
+        sesionDto.setNeutrales(neutrales);
+        sesionDto.setComentarios(comentariosDto);
+
+        System.out.println("✅ SesionDto creado: " + sesionDto);
+
+        return sesionDto;
+    }
         // ✅ AGREGAR ESTE NUEVO MÉTODO A SesionServiceImplement
 
         @Transactional
