@@ -34,4 +34,7 @@ public class SesionDto {
 
     public SesionDto(Integer sesionId, String string, Double avgScore, Integer total, Integer positivos, Integer negativos, Integer neutrales, List<ComentarioDto> comentariosDto) {
     }
+
+    public void setProductosDetectados(List<ProductoMencionesDto> productosDetectados) {
+    }
 }

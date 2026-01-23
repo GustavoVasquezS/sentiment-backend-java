@@ -1,4 +1,5 @@
 package com.project.sentimentapi.controller;
+
 import com.project.sentimentapi.dto.ProductoDto;
 import com.project.sentimentapi.dto.ProductoRequestDto;
 import com.project.sentimentapi.service.ProductoService;
@@ -7,12 +8,15 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
+        import java.util.List;
+
 @RestController
 @RequestMapping("/producto")
 public class ProductoController {
+
     @Autowired
     private ProductoService productoService;
+
     @PostMapping
     public ResponseEntity<?> crearProducto(
             HttpServletRequest request,
@@ -44,10 +48,12 @@ public class ProductoController {
         return ResponseEntity.ok(productos);
     }
 
-    @GetMapping("/categoria/{categoriaId}")
+    // ✅ SOLUCIÓN: Usar @RequestParam en lugar de path variable
+    // GET /producto/por-categoria?categoriaId=1
+    @GetMapping("/por-categoria")
     public ResponseEntity<?> obtenerProductosPorCategoria(
             HttpServletRequest request,
-            @PathVariable Integer categoriaId
+            @RequestParam Integer categoriaId
     ) {
         Integer usuarioId = (Integer) request.getAttribute("usuarioId");
 
@@ -63,6 +69,7 @@ public class ProductoController {
         }
     }
 
+    // Ahora esta ruta NO entra en conflicto
     @GetMapping("/{productoId}")
     public ResponseEntity<?> obtenerProductoPorId(
             HttpServletRequest request,
@@ -82,3 +89,27 @@ public class ProductoController {
         }
     }
 }
+
+/*
+====================================
+📋 NUEVAS URLs PARA USAR:
+====================================
+
+✅ Obtener productos por categoría:
+GET /project/api/v2/producto/por-categoria?categoriaId=1
+
+✅ Obtener producto específico:
+GET /project/api/v2/producto/1
+
+✅ Obtener todos los productos:
+GET /project/api/v2/producto
+
+✅ Crear producto:
+POST /project/api/v2/producto
+{
+  "nombreProducto": "iPhone 15",
+  "categoriaId": 1
+}
+
+====================================
+*/

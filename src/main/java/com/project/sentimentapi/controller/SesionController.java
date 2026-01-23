@@ -2,6 +2,7 @@ package com.project.sentimentapi.controller;
 
 import com.project.sentimentapi.dto.ComentariosRequestDto;
 import com.project.sentimentapi.dto.SesionDto;
+import com.project.sentimentapi.dto.SesionPreviaInfoDto;
 import com.project.sentimentapi.service.SesionService;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -116,6 +117,94 @@ public class SesionController {
                     comentarios,
                     usuarioId,
                     productoId
+            );
+
+            return ResponseEntity.ok(sesion);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(500).body("Error: " + e.getMessage());
+        }
+    }
+    @GetMapping("/ultima-sesion-productos")
+    public ResponseEntity<?> obtenerProductosUltimaSesion(HttpServletRequest request) {
+        Integer usuarioId = (Integer) request.getAttribute("usuarioId");
+
+        if (usuarioId == null) {
+            return ResponseEntity.status(401).body("No autorizado");
+        }
+
+        try {
+            SesionPreviaInfoDto info = sesionService.obtenerProductosUltimaSesion(usuarioId);
+
+            if (info == null) {
+                return ResponseEntity.ok(new HashMap<String, String>() {{
+                    put("mensaje", "No hay sesiones previas");
+                }});
+            }
+
+            return ResponseEntity.ok(info);
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body("Error: " + e.getMessage());
+        }
+    }
+
+    /**
+     * ✨ NUEVO: Analizar con los mismos productos de una sesión anterior
+     */
+    @PostMapping("/analizar-con-productos-previos")
+    public ResponseEntity<?> analizarConProductosPrevios(
+            HttpServletRequest request,
+            @RequestBody HashMap<String, Object> body
+    ) {
+        Integer usuarioId = (Integer) request.getAttribute("usuarioId");
+
+        if (usuarioId == null) {
+            return ResponseEntity.status(401).body("No autorizado");
+        }
+
+        try {
+            @SuppressWarnings("unchecked")
+            List<String> comentarios = (List<String>) body.get("comentarios");
+            Integer sesionPreviaId = (Integer) body.get("sesionPreviaId");
+
+            SesionDto sesion = sesionService.analizarConMismosProductos(
+                    comentarios,
+                    usuarioId,
+                    sesionPreviaId
+            );
+
+            return ResponseEntity.ok(sesion);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(500).body("Error: " + e.getMessage());
+        }
+    }
+
+    /**
+     * ✨ NUEVO: Analizar con productos seleccionados manualmente
+     */
+    @PostMapping("/analizar-con-lista-productos")
+    public ResponseEntity<?> analizarConListaProductos(
+            HttpServletRequest request,
+            @RequestBody HashMap<String, Object> body
+    ) {
+        Integer usuarioId = (Integer) request.getAttribute("usuarioId");
+
+        if (usuarioId == null) {
+            return ResponseEntity.status(401).body("No autorizado");
+        }
+
+        try {
+            @SuppressWarnings("unchecked")
+            List<String> comentarios = (List<String>) body.get("comentarios");
+
+            @SuppressWarnings("unchecked")
+            List<Integer> productosIds = (List<Integer>) body.get("productosIds");
+
+            SesionDto sesion = sesionService.analizarConMultiplesProductos(
+                    comentarios,
+                    usuarioId,
+                    productosIds
             );
 
             return ResponseEntity.ok(sesion);
