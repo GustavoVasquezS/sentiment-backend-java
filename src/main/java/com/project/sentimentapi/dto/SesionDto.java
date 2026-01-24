@@ -8,7 +8,6 @@ import lombok.NoArgsConstructor;
 import java.util.List;
 
 @Data
-@AllArgsConstructor
 @NoArgsConstructor
 public class SesionDto {
     @JsonProperty("sessionId")
@@ -32,7 +31,17 @@ public class SesionDto {
     // ✅ NUEVO: Lista de comentarios analizados
     private List<ComentarioDto> comentarios;
 
-    public SesionDto(Integer sesionId, String string, Double avgScore, Integer total, Integer positivos, Integer negativos, Integer neutrales, List<ComentarioDto> comentariosDto) {
+    public SesionDto(Integer sesionId, String fecha, Double avgScore, Integer total,
+                     Integer positivos, Integer negativos, Integer neutrales,
+                     List<ComentarioDto> comentarios) {
+        this.sesionId = sesionId;
+        this.fecha = fecha;
+        this.avgScore = avgScore;
+        this.total = total;
+        this.positivos = positivos;
+        this.negativos = negativos;
+        this.neutrales = neutrales;
+        this.comentarios = comentarios;
     }
 
     public void setProductosDetectados(List<ProductoMencionesDto> productosDetectados) {
