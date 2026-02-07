@@ -1,10 +1,10 @@
 package com.project.sentimentapi.event;
 
 import com.project.sentimentapi.entity.User;
-import lombok.Data;
+import lombok.Getter;
 import org.springframework.context.ApplicationEvent;
 
-@Data
+@Getter
 public class UserRegisteredEvent extends ApplicationEvent {
     private final User usuario;
 

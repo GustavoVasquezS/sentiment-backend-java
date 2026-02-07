@@ -2,7 +2,9 @@ package com.project.sentimentapi.entity;
 
 import jakarta.persistence.*;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
+import lombok.ToString;
 
 import java.util.List;
 
@@ -10,6 +12,8 @@ import java.util.List;
 @Data
 @Table(name = "usuarios")
 @NoArgsConstructor
+@ToString(exclude = {"rol", "sesiones"})
+@EqualsAndHashCode(exclude = {"rol", "sesiones"})
 public class User {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

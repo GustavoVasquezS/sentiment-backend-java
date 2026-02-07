@@ -2,11 +2,15 @@ package com.project.sentimentapi.entity;
 
 import jakarta.persistence.*;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
 
 import java.util.List;
 
 @Entity
 @Data
+@ToString(exclude = {"user"})
+@EqualsAndHashCode(exclude = {"user"})
 @Table(name = "rol")
 public class Rol {
     @Id

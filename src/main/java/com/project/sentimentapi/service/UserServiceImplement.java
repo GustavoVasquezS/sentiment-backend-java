@@ -43,10 +43,14 @@ public class UserServiceImplement implements UserService {
             throw new RuntimeException("El correo ya esta registrado");
         }
 
-        Optional<Rol> rol = rolrepository.findById(2);
+        Optional<Rol> rol = rolrepository.findByNombreRol("USER");
         if (rol.isEmpty()) {
-            System.err.println("ERROR: Rol no encontrado");
-            throw new RuntimeException("Rol no encontrado");
+            // Fallback: intentar por ID
+            rol = rolrepository.findById(2);
+        }
+        if (rol.isEmpty()) {
+            System.err.println("ERROR: Rol USER no encontrado");
+            throw new RuntimeException("Rol USER no encontrado. Verifique que DataInitializer haya ejecutado correctamente.");
         }
 
         List<Rol> roles = new ArrayList<>();
