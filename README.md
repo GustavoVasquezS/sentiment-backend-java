@@ -2164,6 +2164,14 @@ Agradecemos profundamente a **No Country** por:
 - Crear oportunidades para desarrolladores de toda Latinoamérica
 - Impulsar proyectos que resuelven problemas reales con tecnología
 
+### Al Equipo No Data - No Code
+
+Agradecimiento especial al equipo **No Data - No Code** por el extraordinario trabajo realizado durante la Hackathon:
+
+- **Jonathan Tuppia** - Por su repositorio de referencia [SentimentAPI](https://github.com/Jona-9/SentimentAPI) que sirvió como base para este backend, por liderar el deploy de los tres frentes en local y la presentación exitosa en el Demo Day.
+- **Alexandra Cleto** - Por su repositorio de referencia [sentimientos](https://github.com/Alexandracleto/sentimientos/tree/Ale-dev) que inspiró el diseño del frontend React.
+- **Francisco Llendo** - Por su modelo de Machine Learning optimizado a la versión 4.0, disponible en [Sentimental_API_No_Data_No_Code_Semana_4](https://github.com/GustavoVasquezS/Sentimental_API_No_Data_No_Code_Semana_4).
+
 ### Al Equipo de Desarrollo
 
 **Backend Team (Java/Spring Boot)**:
@@ -2171,12 +2179,12 @@ Agradecemos profundamente a **No Country** por:
 - Por el diseño cuidadoso del modelo de datos
 - Por la integración fluida con el modelo de Machine Learning
 
-**Frontend Team**:
+**Frontend Team (React/Tailwind)**:
 - Por crear una interfaz intuitiva que hace accesible la complejidad del análisis
 - Por el feedback constante que mejoró los endpoints de la API
 
 **Data Science Team (Python/FastAPI)**:
-- Por desarrollar un modelo de ML preciso y eficiente
+- Por desarrollar un modelo de ML preciso y eficiente con TF-IDF + Regresión Logística Calibrada
 - Por documentar claramente los endpoints de análisis
 - Por optimizar los tiempos de respuesta del modelo
 
@@ -2210,6 +2218,6 @@ Si este proyecto te resultó útil, considera:
 
 ---
 
-*SentimentAPI v3.0.0 - Hackathon ONE 2026*
+*SentimentAPI v4.0 - Hackathon ONE 2026*
 
 </div>
