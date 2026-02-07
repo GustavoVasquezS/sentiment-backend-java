@@ -19,7 +19,7 @@ public class SentimentServiceImplement implements SentimentService {
         try {
             Map<String, String> request = new HashMap<>();
             request.put("text", texto);
-            ResponseDto responseDto = conectarApi.client().post().uri("/sentiment").
+            ResponseDto responseDto = conectarApi.client().post().uri("/predict").
                     bodyValue(request).
                     retrieve().bodyToMono(ResponseDto.class).block();
             return Optional.of(responseDto);
@@ -38,7 +38,7 @@ public class SentimentServiceImplement implements SentimentService {
             Map<String, List<String>> request = new HashMap<>();
             request.put("texts", textoGuardado);
             ObjectMapper objectMapper = new ObjectMapper();
-            String string = conectarApi.client().post().uri("/sentiment/batch").
+            String string = conectarApi.client().post().uri("/predict/batch").
                     bodyValue(request).
                     retrieve().bodyToMono(String.class).block();
             SentimentsResponseDto responseDto = objectMapper.readValue(string, SentimentsResponseDto.class);

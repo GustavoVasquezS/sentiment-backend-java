@@ -22,22 +22,21 @@ public class User {
     @Column(unique = true, nullable = false)
     private String correo;
     @Column(nullable = false)
-    private String contraseña;
+    private String contrasena;
 
     @ManyToMany(cascade = CascadeType.ALL,fetch = FetchType.LAZY)
     @JoinTable(name = "User_rol",joinColumns = @JoinColumn(name = "user_id", referencedColumnName = "usuario_id"),
             inverseJoinColumns = @JoinColumn(name = "rol_Id",referencedColumnName = "rol_id"))
     private List<Rol> rol;
 
-    // NUEVA RELACIÓN: Un usuario tiene muchas sesiones
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "usuario")
     private List<Sesion> sesiones;
 
-    public User(String nombre, String apellido,String contraseña, String correo, List<Rol> rol){
+    public User(String nombre, String apellido, String contrasena, String correo, List<Rol> rol){
         this.nombre = nombre;
         this.apellido = apellido;
         this.correo = correo;
-        this.contraseña = contraseña;
+        this.contrasena = contrasena;
         this.rol = rol;
     }
 }

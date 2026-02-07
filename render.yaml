@@ -1,0 +1,21 @@
+services:
+  - type: web
+    name: sentiment-backend-java
+    runtime: docker
+    dockerfilePath: ./Dockerfile
+    envVars:
+      - key: SPRING_DATASOURCE_URL
+        value: jdbc:postgresql://dpg-d5vdmql6ubrc73cd72ig-a.oregon-postgres.render.com:5432/sentiment_db_ay8e
+      - key: SPRING_DATASOURCE_USERNAME
+        value: sentiment_db_ay8e_user
+      - key: SPRING_DATASOURCE_PASSWORD
+        value: REXGv3PExiH2DuU4OV1MdBZ0sufnQSOH
+      - key: CONFIG_URL
+        value: https://sentiment-api-render.onrender.com
+      - key: JWT_SECRET
+        value: sentimentApiSecretKey2026HackathonOneNoCountry
+      - key: JWT_EXPIRATION
+        value: "86400000"
+      - key: SERVER_PORT
+        value: "8080"
+    healthCheckPath: /project/api/v2/sentiment/analyze

@@ -7,12 +7,16 @@ import org.springframework.stereotype.Repository;
 import java.util.List;
 import java.util.Optional;
 
-    @Repository
-    public interface CategoriaRepository extends JpaRepository<Categoria, Integer> {
+@Repository
+public interface CategoriaRepository extends JpaRepository<Categoria, Integer> {
 
-        List<Categoria> findByUsuarioOrderByNombreCategoriaAsc(User usuario);
+    List<Categoria> findByUsuarioOrderByNombreCategoriaAsc(User usuario);
 
-        Optional<Categoria> findByNombreCategoriaAndUsuario(String nombreCategoria, User usuario);
+    List<Categoria> findByUsuario(User usuario);
 
-        long countByUsuario(User usuario);
-    }
+    Optional<Categoria> findByNombreCategoriaAndUsuario(String nombreCategoria, User usuario);
+
+    Optional<Categoria> findByNombreCategoriaIgnoreCaseAndUsuario(String nombreCategoria, User usuario);
+
+    long countByUsuario(User usuario);
+}

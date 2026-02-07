@@ -16,14 +16,17 @@ public interface ProductoRepository extends JpaRepository<Producto, Integer> {
 
     List<Producto> findByUsuarioOrderByUltimaActualizacionDesc(User usuario);
 
+    List<Producto> findByUsuario(User usuario);
+
     List<Producto> findByCategoriaOrderByNombreProductoAsc(Categoria categoria);
 
     Optional<Producto> findByNombreProductoAndUsuario(String nombreProducto, User usuario);
 
+    Optional<Producto> findByNombreProductoIgnoreCaseAndCategoriaAndUsuario(String nombreProducto, Categoria categoria, User usuario);
+
     @Query("SELECT p FROM Producto p WHERE p.usuario = :usuario ORDER BY p.totalMenciones DESC")
     List<Producto> findTopProductosByMenciones(@Param("usuario") User usuario);
 
-    @Query("SELECT p FROM Producto p WHERE p.usuario = :usuario AND p.totalMenciones > 0 " +
-            "ORDER BY (CAST(p.positivos AS double) / p.totalMenciones) DESC")
+    @Query("SELECT p FROM Producto p WHERE p.usuario = :usuario AND p.totalMenciones > 0 ORDER BY (CAST(p.positivos AS double) / p.totalMenciones) DESC")
     List<Producto> findTopProductosByPositividad(@Param("usuario") User usuario);
 }
