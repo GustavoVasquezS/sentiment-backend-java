@@ -34,6 +34,106 @@ API REST desarrollada en **Spring Boot 4.0.1** que actúa como gateway para cons
 
 ---
 
+## 🌐 URLs de Producción
+
+| Servicio | URL |
+|----------|-----|
+| **Backend Java (este repo)** | https://sentiment-backend-java-production.up.railway.app |
+| **API Base Path** | https://sentiment-backend-java-production.up.railway.app/project/api/v2 |
+| **ML API Python** | https://sentiment-api-render.onrender.com |
+| **Frontend React** | https://sentiment-dashboard-pi.vercel.app |
+| **Base de Datos** | PostgreSQL en Render (conexión privada) |
+
+---
+
+## 🚀 Instalación Local
+
+### Requisitos Previos
+- Java 17+
+- Maven 3.8+ (o usar el wrapper incluido)
+- PostgreSQL 15+ (local o remoto)
+
+### Configuración
+
+1. **Clonar el repositorio:**
+```bash
+git clone https://github.com/GustavoVasquezS/sentiment-backend-java.git
+cd sentiment-backend-java
+```
+
+2. **Configurar variables de entorno** (o editar `application.properties`):
+```bash
+# Base de datos
+export DB_HOST=localhost
+export DB_PORT=5432
+export DB_NAME=sentiment_db
+export DB_USER=postgres
+export DB_PASSWORD=tu_password
+
+# API ML Python
+export ML_API_URL=https://sentiment-api-render.onrender.com
+
+# JWT
+export JWT_SECRET=tu_clave_secreta_muy_larga_y_segura
+```
+
+3. **Ejecutar la aplicación:**
+```bash
+# Windows
+.\mvnw.cmd spring-boot:run
+
+# Linux/Mac
+./mvnw spring-boot:run
+```
+
+La API estará disponible en `http://localhost:8080/project/api/v2`
+
+---
+
+## ☁️ Despliegue en Railway
+
+### Variables de Entorno Requeridas
+
+Configura estas variables en Railway Dashboard:
+
+| Variable | Descripción | Ejemplo |
+|----------|-------------|---------|
+| `DB_HOST` | Host de PostgreSQL | `dpg-xxx.render.com` |
+| `DB_PORT` | Puerto de PostgreSQL | `5432` |
+| `DB_NAME` | Nombre de la base de datos | `sentiment_db` |
+| `DB_USER` | Usuario de PostgreSQL | `sentiment_user` |
+| `DB_PASSWORD` | Contraseña de PostgreSQL | `***` |
+| `ML_API_URL` | URL de la API ML Python | `https://sentiment-api-render.onrender.com` |
+| `JWT_SECRET` | Clave secreta para tokens JWT | `clave_muy_larga_y_segura` |
+
+### Dockerfile (incluido en el repo)
+
+```dockerfile
+FROM eclipse-temurin:17-jdk-alpine AS build
+WORKDIR /app
+COPY .mvn/ .mvn
+COPY mvnw pom.xml ./
+RUN chmod +x mvnw && ./mvnw dependency:go-offline -B
+COPY src ./src
+RUN ./mvnw package -DskipTests -B
+
+FROM eclipse-temurin:17-jre-alpine
+WORKDIR /app
+COPY --from=build /app/target/*.jar app.jar
+EXPOSE 8080
+ENTRYPOINT ["java", "-jar", "app.jar"]
+```
+
+### Pasos para Desplegar
+
+1. Crear proyecto en [Railway](https://railway.app)
+2. Conectar repositorio de GitHub
+3. Configurar variables de entorno en Settings > Variables
+4. Railway detectará el Dockerfile automáticamente
+5. El servicio se desplegará en ~3-5 minutos
+
+---
+
 ## 📁 Estructura del Proyecto
 
 ```
