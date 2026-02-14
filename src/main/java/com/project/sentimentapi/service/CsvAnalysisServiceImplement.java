@@ -9,7 +9,7 @@ import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -97,7 +97,7 @@ public class CsvAnalysisServiceImplement implements CsvAnalysisService {
 
         // Crear sesion temporal
         Sesion sesion = new Sesion();
-        sesion.setFecha(LocalDate.now());
+        sesion.setFecha(LocalDateTime.now());
         sesion.setUsuario(usuario);
 
         for (int i = 0; i < rows.size(); i++) {
@@ -186,7 +186,7 @@ public class CsvAnalysisServiceImplement implements CsvAnalysisService {
 
         return new CsvAnalysisResponseDto(
                 sesionGuardada.getSesionId(),
-                LocalDate.now().toString(),
+                LocalDateTime.now().toString(),
                 total, positivos, negativos, neutrales, avgScore,
                 categoriasAnalisis, productosAnalisis, comentariosDto
         );

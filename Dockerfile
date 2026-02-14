@@ -23,8 +23,8 @@ WORKDIR /app
 # Copiar JAR desde la etapa de build
 COPY --from=build /app/target/*.jar app.jar
 
-# Puerto dinámico (Railway/Render asignan PORT como env var)
-EXPOSE ${SERVER_PORT:-8080}
+# Puerto dinámico (Railway inyecta PORT automáticamente)
+EXPOSE 8080
 
-# Ejecutar la aplicación con puerto dinámico
-ENTRYPOINT ["java", "-Dserver.port=${SERVER_PORT:-8080}", "-jar", "app.jar"]
+# Shell form para que las env vars se expandan correctamente
+ENTRYPOINT java -jar app.jar
