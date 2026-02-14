@@ -9,6 +9,7 @@ import lombok.NoArgsConstructor;
 @Data
 @JsonIgnoreProperties(ignoreUnknown = true)
 @AllArgsConstructor
+@NoArgsConstructor
 public class ResponseDto {
     private String prevision;
     private Double probabilidad;

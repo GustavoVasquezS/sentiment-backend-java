@@ -31,5 +31,9 @@ build/
 
 ### VS Code ###
 .vscode/
-error.log
-server.log
+
+### Temp/debug files ###
+app.log
+body.json
+test.csv
+token.txt

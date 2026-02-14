@@ -4,7 +4,7 @@ import jakarta.persistence.*;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -20,7 +20,7 @@ public class Sesion {
     private Integer sesionId;
 
     @Column(name = "fecha", nullable = false)
-    private LocalDate fecha;
+    private LocalDateTime fecha;
 
     @Column(name = "avg_score", nullable = false)
     private Double avgScore;
@@ -48,7 +48,7 @@ public class Sesion {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "producto_id") // ← NULLABLE (puede ser análisis sin producto)
     private Producto producto;
-    public Sesion(LocalDate fecha, Double avgScore, Integer total,
+    public Sesion(LocalDateTime fecha, Double avgScore, Integer total,
                   Integer positivos, Integer negativos, Integer neutrales, User usuario) {
         this.fecha = fecha;
         this.avgScore = avgScore;

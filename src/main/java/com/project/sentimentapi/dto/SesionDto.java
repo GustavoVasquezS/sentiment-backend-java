@@ -44,6 +44,13 @@ public class SesionDto {
         this.comentarios = comentarios;
     }
 
+    private List<ProductoMencionesDto> productosDetectados;
+
     public void setProductosDetectados(List<ProductoMencionesDto> productosDetectados) {
+        this.productosDetectados = productosDetectados;
+    }
+
+    public List<ProductoMencionesDto> getProductosDetectados() {
+        return productosDetectados;
     }
 }

@@ -1,6 +1,7 @@
 package com.project.sentimentapi.controller;
 
 import com.project.sentimentapi.dto.ComentariosRequestDto;
+import com.project.sentimentapi.dto.CsvBatchRequestDto;
 import com.project.sentimentapi.dto.SesionDto;
 import com.project.sentimentapi.dto.SesionPreviaInfoDto;
 import com.project.sentimentapi.service.SesionService;
@@ -205,6 +206,38 @@ public class SesionController {
                     comentarios,
                     usuarioId,
                     productosIds
+            );
+
+            return ResponseEntity.ok(sesion);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(500).body("Error: " + e.getMessage());
+        }
+    }
+
+    /**
+     * ✨ NUEVO: Analizar batch CSV con auto-creación de categorías y productos
+     * Recibe entradas con texto, producto (opcional) y categoría (opcional)
+     */
+    @PostMapping("/analizar-csv-batch")
+    public ResponseEntity<?> analizarCsvBatch(
+            HttpServletRequest request,
+            @RequestBody CsvBatchRequestDto csvBatchRequest
+    ) {
+        Integer usuarioId = (Integer) request.getAttribute("usuarioId");
+
+        if (usuarioId == null) {
+            return ResponseEntity.status(401).body("No autorizado");
+        }
+
+        try {
+            if (csvBatchRequest.getEntradas() == null || csvBatchRequest.getEntradas().isEmpty()) {
+                return ResponseEntity.badRequest().body("No hay entradas para analizar");
+            }
+
+            SesionDto sesion = sesionService.analizarBatchConCsv(
+                    csvBatchRequest.getEntradas(),
+                    usuarioId
             );
 
             return ResponseEntity.ok(sesion);

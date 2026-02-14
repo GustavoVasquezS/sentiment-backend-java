@@ -60,7 +60,9 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                     request.setAttribute("correo", correo);
 
                     System.out.println("✅ Token válido - Usuario: " + correo);
-                    filterChain.doFilter(request, response);
+                }  else {
+                    response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                    response.getWriter().write("Token inválido o expirado");
                     return;
                 }
             } catch (Exception e) {
@@ -69,6 +71,10 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 response.getWriter().write("Token inválido o expirado");
                 return;
             }
+
+            // ✅ Continuar con la cadena de filtros FUERA del try-catch de JWT
+            filterChain.doFilter(request, response);
+            return;
         }
 
         response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);

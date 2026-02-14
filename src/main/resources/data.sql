@@ -1,6 +1,3 @@
-INSERT INTO categoria (nombre_categoria, descripcion, usuario_id)
-SELECT 'Tecnología', 'Productos electrónicos y gadgets', usuario_id
-FROM usuarios
-WHERE NOT EXISTS (
-    SELECT 1 FROM categoria WHERE nombre_categoria = 'Tecnología' AND usuario_id = usuarios.usuario_id
-);
+-- Roles mínimos requeridos para el funcionamiento de la aplicación
+INSERT INTO rol (rol_id, nombre_rol) VALUES (1, 'ADMIN') ON CONFLICT (rol_id) DO NOTHING;
+INSERT INTO rol (rol_id, nombre_rol) VALUES (2, 'USER') ON CONFLICT (rol_id) DO NOTHING;

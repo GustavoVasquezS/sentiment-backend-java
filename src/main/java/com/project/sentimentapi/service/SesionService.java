@@ -1,5 +1,6 @@
 package com.project.sentimentapi.service;
 
+import com.project.sentimentapi.dto.CsvEntradaDto;
 import com.project.sentimentapi.dto.SesionDto;
 import com.project.sentimentapi.dto.SesionPreviaInfoDto;
 import jakarta.transaction.Transactional;
@@ -33,5 +34,11 @@ public interface SesionService {
             List<String> comentarios,
             Integer usuarioId,
             List<Integer> productosIds
+    );
+
+    @Transactional
+    SesionDto analizarBatchConCsv(
+            List<CsvEntradaDto> entradas,
+            Integer usuarioId
     );
 }

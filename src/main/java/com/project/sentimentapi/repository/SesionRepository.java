@@ -9,5 +9,5 @@ import java.util.List;
 
 @Repository
 public interface SesionRepository extends JpaRepository<Sesion, Integer> {
-    List<Sesion> findByUsuarioOrderByFechaDesc(User usuario);
+    List<Sesion> findByUsuarioOrderBySesionIdDesc(User usuario);
 }

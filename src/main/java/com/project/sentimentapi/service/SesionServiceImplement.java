@@ -2,6 +2,7 @@ package com.project.sentimentapi.service;
 
 import com.project.sentimentapi.dto.*;
 import com.project.sentimentapi.entity.*;
+import com.project.sentimentapi.repository.CategoriaRepository;
 import com.project.sentimentapi.repository.ProductoRepository;
 import com.project.sentimentapi.repository.SesionProductoRepository;
 import com.project.sentimentapi.repository.SesionRepository;
@@ -10,14 +11,12 @@ import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.*;
-import java.util.Optional;
 import java.util.stream.Collectors;
-
-import static tools.jackson.databind.type.LogicalType.Map;
 
 @Service
     public class SesionServiceImplement implements SesionService {
@@ -40,6 +39,9 @@ import static tools.jackson.databind.type.LogicalType.Map;
         @Autowired
         ProductoService productoService;
 
+        @Autowired
+        CategoriaRepository categoriaRepository;
+
 
         @Override
         public void guardarSesion(SesionDto sesionDto, Integer usuarioId) {
@@ -47,7 +49,7 @@ import static tools.jackson.databind.type.LogicalType.Map;
 
             if (usuario.isPresent()) {
                 Sesion sesion = new Sesion(
-                        LocalDate.parse(sesionDto.getFecha()),
+                        LocalDateTime.now(),
                         sesionDto.getAvgScore(),
                         sesionDto.getTotal(),
                         sesionDto.getPositivos(),
@@ -65,16 +67,38 @@ import static tools.jackson.databind.type.LogicalType.Map;
             Optional<User> usuario = userRepository.findById(usuarioId);
 
             if (usuario.isPresent()) {
-                List<Sesion> sesiones = sesionRepository.findByUsuarioOrderByFechaDesc(usuario.get());
+                List<Sesion> sesiones = sesionRepository.findByUsuarioOrderBySesionIdDesc(usuario.get());
 
                 return sesiones.stream()
                         .map(sesion -> {
-                            // ✅ Mapear comentarios a DTOs
+                            // Obtener productos asociados a esta sesión
+                            List<SesionProducto> sesionProductos = sesionProductoRepository.findBySesion(sesion);
+
+                            // Construir mapa producto_id → nombreProducto para asociar comentarios
+                            Map<Integer, String> productoIdToName = new HashMap<>();
+                            sesionProductos.forEach(sp ->
+                                productoIdToName.put(sp.getProducto().getProductoId(), sp.getProducto().getNombreProducto())
+                            );
+
+                            // Mapear comentarios a DTOs — intentar asociar productoAsociado
                             List<ComentarioDto> comentariosDto = sesion.getComentarios().stream()
-                                    .map(c -> new ComentarioDto(c.getTexto(), c.getSentimiento(), c.getProbabilidad()))
+                                    .map(c -> {
+                                        // Inferir producto del comentario comparando con los productos de la sesión
+                                        String productoAsociado = null;
+                                        if (!productoIdToName.isEmpty()) {
+                                            String textoLower = c.getTexto().toLowerCase();
+                                            for (Map.Entry<Integer, String> entry : productoIdToName.entrySet()) {
+                                                if (textoLower.contains(entry.getValue().toLowerCase())) {
+                                                    productoAsociado = entry.getValue();
+                                                    break;
+                                                }
+                                            }
+                                        }
+                                        return new ComentarioDto(c.getTexto(), c.getSentimiento(), c.getProbabilidad(), productoAsociado);
+                                    })
                                     .collect(Collectors.toList());
 
-                            return new SesionDto(
+                            SesionDto dto = new SesionDto(
                                     sesion.getSesionId(),
                                     sesion.getFecha().toString(),
                                     sesion.getAvgScore(),
@@ -82,8 +106,26 @@ import static tools.jackson.databind.type.LogicalType.Map;
                                     sesion.getPositivos(),
                                     sesion.getNegativos(),
                                     sesion.getNeutrales(),
-                                    comentariosDto // ✅ NUEVO: Incluir comentarios
+                                    comentariosDto
                             );
+
+                            // Agregar productosDetectados con estadísticas por producto
+                            if (!sesionProductos.isEmpty()) {
+                                int totalSesion = sesion.getTotal() != null ? sesion.getTotal() : 1;
+                                List<ProductoMencionesDto> productosDetectados = sesionProductos.stream()
+                                        .map(sp -> new ProductoMencionesDto(
+                                                sp.getProducto().getNombreProducto(),
+                                                sp.getMencionesSesion(),
+                                                sp.getPositivosSesion(),
+                                                sp.getNegativosSesion(),
+                                                sp.getNeutralesSesion(),
+                                                ((double) sp.getMencionesSesion() / totalSesion) * 100
+                                        ))
+                                        .collect(Collectors.toList());
+                                dto.setProductosDetectados(productosDetectados);
+                            }
+
+                            return dto;
                         })
                         .collect(Collectors.toList());
             }
@@ -150,7 +192,7 @@ import static tools.jackson.databind.type.LogicalType.Map;
 
         // ✅ CREAR SESIÓN
         Sesion sesion = new Sesion(
-                LocalDate.now(),
+                LocalDateTime.now(),
                 avgScore,
                 total,
                 positivos,
@@ -194,7 +236,7 @@ import static tools.jackson.databind.type.LogicalType.Map;
         // ✅ RETORNAR DTO CON TODA LA INFORMACIÓN
         SesionDto sesionDto = new SesionDto();
         sesionDto.setSesionId(sesionGuardada.getSesionId());
-        sesionDto.setFecha(LocalDate.now().toString());
+        sesionDto.setFecha(LocalDateTime.now().toString());
         sesionDto.setAvgScore(avgScore);
         sesionDto.setTotal(total);
         sesionDto.setPositivos(positivos);
@@ -311,7 +353,7 @@ import static tools.jackson.databind.type.LogicalType.Map;
 
             // 4️⃣ CREAR SESIÓN
             Sesion sesion = new Sesion(
-                    LocalDate.now(),
+                    LocalDateTime.now(),
                     avgScore,
                     total,
                     positivos,
@@ -352,7 +394,7 @@ import static tools.jackson.databind.type.LogicalType.Map;
 
             SesionDto sesionDto = new SesionDto(
                     sesionGuardada.getSesionId(),
-                    LocalDate.now().toString(),
+                    LocalDateTime.now().toString(),
                     avgScore,
                     total,
                     positivos,
@@ -374,7 +416,7 @@ import static tools.jackson.databind.type.LogicalType.Map;
             User usuario = userRepository.findById(usuarioId)
                     .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
 
-            List<Sesion> sesiones = sesionRepository.findByUsuarioOrderByFechaDesc(usuario);
+            List<Sesion> sesiones = sesionRepository.findByUsuarioOrderBySesionIdDesc(usuario);
 
             if (sesiones.isEmpty()) {
                 return null; // No hay sesiones previas
@@ -535,7 +577,7 @@ import static tools.jackson.databind.type.LogicalType.Map;
             }
 
             // Crear sesión
-            Sesion sesion = new Sesion(LocalDate.now(), avgScore, total, positivos, negativos, neutrales, usuario);
+            Sesion sesion = new Sesion(LocalDateTime.now(), avgScore, total, positivos, negativos, neutrales, usuario);
             for (Comentario com : comentariosEntidades) {
                 com.setSesion(sesion);
             }
@@ -583,7 +625,7 @@ import static tools.jackson.databind.type.LogicalType.Map;
 
             SesionDto sesionDto = new SesionDto(
                     sesionGuardada.getSesionId(),
-                    LocalDate.now().toString(),
+                    LocalDateTime.now().toString(),
                     avgScore,
                     total,
                     positivos,
@@ -593,6 +635,219 @@ import static tools.jackson.databind.type.LogicalType.Map;
             );
 
             sesionDto.setProductosDetectados(productosDetectados);
+
+            return sesionDto;
+        }
+
+        /**
+         * ✨ NUEVO: Analizar batch CSV con auto-creación de categorías y productos
+         */
+        @Override
+        @Transactional
+        public SesionDto analizarBatchConCsv(List<CsvEntradaDto> entradas, Integer usuarioId) {
+            User usuario = userRepository.findById(usuarioId)
+                    .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
+
+            System.out.println("📊 Analizando batch CSV con " + entradas.size() + " entradas");
+
+            // 1️⃣ Auto-crear categorías y productos que no existan
+            // Mapa de nombreCategoria -> Categoria entity
+            Map<String, Categoria> categoriasMap = new HashMap<>();
+            // Mapa de nombreProducto -> Producto entity
+            Map<String, Producto> productosMap = new HashMap<>();
+
+            for (CsvEntradaDto entrada : entradas) {
+                String catNombre = entrada.getCategoria();
+                String prodNombre = entrada.getProducto();
+
+                if (catNombre != null && !catNombre.isBlank()) {
+                    catNombre = catNombre.trim();
+                    if (!categoriasMap.containsKey(catNombre)) {
+                        // Buscar o crear categoría
+                        String finalCatNombre = catNombre;
+                        Categoria cat = categoriaRepository.findByNombreCategoriaAndUsuario(catNombre, usuario)
+                                .orElseGet(() -> {
+                                    Categoria nueva = new Categoria(finalCatNombre, "Auto-creada desde CSV", usuario);
+                                    return categoriaRepository.save(nueva);
+                                });
+                        categoriasMap.put(catNombre, cat);
+                    }
+                }
+
+                if (prodNombre != null && !prodNombre.isBlank()) {
+                    prodNombre = prodNombre.trim();
+                    if (!productosMap.containsKey(prodNombre)) {
+                        // Buscar o crear producto
+                        String finalProdNombre = prodNombre;
+                        String finalCatNombreForProd = catNombre;
+                        Producto prod = productoRepository.findByNombreProductoAndUsuario(prodNombre, usuario)
+                                .orElseGet(() -> {
+                                    // Determinar categoría para el producto
+                                    Categoria catParaProducto = null;
+                                    if (finalCatNombreForProd != null && !finalCatNombreForProd.isBlank()) {
+                                        catParaProducto = categoriasMap.get(finalCatNombreForProd.trim());
+                                    }
+                                    if (catParaProducto == null) {
+                                        // Crear/buscar categoría "General"
+                                        catParaProducto = categoriaRepository.findByNombreCategoriaAndUsuario("General", usuario)
+                                                .orElseGet(() -> {
+                                                    Categoria general = new Categoria("General", "Categoría por defecto", usuario);
+                                                    return categoriaRepository.save(general);
+                                                });
+                                        categoriasMap.put("General", catParaProducto);
+                                    }
+                                    Producto nuevo = new Producto(finalProdNombre, catParaProducto, usuario);
+                                    return productoRepository.save(nuevo);
+                                });
+                        productosMap.put(prodNombre, prod);
+                    }
+                }
+            }
+
+            System.out.println("   Categorías: " + categoriasMap.size() + ", Productos: " + productosMap.size());
+
+            // 2️⃣ Recopilar todos los textos y analizar
+            List<String> textos = entradas.stream()
+                    .map(CsvEntradaDto::getTexto)
+                    .filter(t -> t != null && !t.isBlank())
+                    .collect(Collectors.toList());
+
+            if (textos.isEmpty()) {
+                throw new RuntimeException("No hay textos válidos para analizar");
+            }
+
+            String textoCompleto = String.join("\n", textos);
+            Optional<SentimentsResponseDto> responseOpt = sentimentService.consultarSentimientos(textoCompleto);
+
+            if (responseOpt.isEmpty()) {
+                throw new RuntimeException("Error al analizar comentarios");
+            }
+
+            List<ResponseDto> resultados = responseOpt.get().getResults();
+
+            // 3️⃣ Calcular estadísticas generales
+            int total = resultados.size();
+            int positivos = 0, negativos = 0, neutrales = 0;
+            double sumaScores = 0.0;
+
+            for (ResponseDto resultado : resultados) {
+                sumaScores += resultado.getProbabilidad();
+                String sentimiento = resultado.getPrevision();
+                if (sentimiento.equalsIgnoreCase("Positivo")) positivos++;
+                else if (sentimiento.equalsIgnoreCase("Negativo")) negativos++;
+                else neutrales++;
+            }
+
+            double avgScore = total > 0 ? sumaScores / total : 0.0;
+
+            // 4️⃣ Crear sesión
+            Sesion sesion = new Sesion(LocalDateTime.now(), avgScore, total, positivos, negativos, neutrales, usuario);
+
+            // 5️⃣ Procesar cada entrada y asignar producto
+            // Contadores por producto
+            Map<Integer, ContadorProducto> contadores = new HashMap<>();
+            for (Producto p : productosMap.values()) {
+                contadores.put(p.getProductoId(), new ContadorProducto(p.getNombreProducto()));
+            }
+
+            List<Comentario> comentariosEntidades = new ArrayList<>();
+            List<ComentarioDto> comentariosDto = new ArrayList<>();
+
+            // Filtrar entradas que tienen texto válido (misma lista que textos)
+            List<CsvEntradaDto> entradasValidas = entradas.stream()
+                    .filter(e -> e.getTexto() != null && !e.getTexto().isBlank())
+                    .collect(Collectors.toList());
+
+            for (int i = 0; i < entradasValidas.size() && i < resultados.size(); i++) {
+                CsvEntradaDto entrada = entradasValidas.get(i);
+                ResponseDto resultado = resultados.get(i);
+                String textoComentario = entrada.getTexto().trim();
+                String sentimiento = resultado.getPrevision();
+
+                // Si la entrada tiene producto, contar para ese producto
+                if (entrada.getProducto() != null && !entrada.getProducto().isBlank()) {
+                    Producto prod = productosMap.get(entrada.getProducto().trim());
+                    if (prod != null) {
+                        ContadorProducto contador = contadores.get(prod.getProductoId());
+                        if (contador != null) {
+                            contador.incrementar(sentimiento);
+                        }
+                    }
+                }
+
+                Comentario comentarioEntity = new Comentario(
+                        textoComentario,
+                        sentimiento,
+                        resultado.getProbabilidad(),
+                        sesion
+                );
+                comentariosEntidades.add(comentarioEntity);
+
+                String productoAsociado = (entrada.getProducto() != null && !entrada.getProducto().isBlank())
+                        ? entrada.getProducto().trim() : null;
+
+                comentariosDto.add(new ComentarioDto(
+                        textoComentario,
+                        sentimiento.toLowerCase(),
+                        resultado.getProbabilidad(),
+                        productoAsociado
+                ));
+            }
+
+            sesion.setComentarios(comentariosEntidades);
+            Sesion sesionGuardada = sesionRepository.save(sesion);
+
+            // 6️⃣ Guardar relación sesión-productos y actualizar contadores
+            List<ProductoMencionesDto> productosDetectados = new ArrayList<>();
+
+            for (Map.Entry<Integer, ContadorProducto> entry : contadores.entrySet()) {
+                Integer productoId = entry.getKey();
+                ContadorProducto contador = entry.getValue();
+
+                if (contador.getTotal() > 0) {
+                    SesionProducto sp = new SesionProducto(
+                            sesionGuardada,
+                            productoRepository.findById(productoId).get(),
+                            contador.getTotal(),
+                            contador.getPositivos(),
+                            contador.getNegativos(),
+                            contador.getNeutrales()
+                    );
+                    sesionProductoRepository.save(sp);
+
+                    productoService.actualizarContadoresProducto(
+                            productoId,
+                            contador.getPositivos(),
+                            contador.getNegativos(),
+                            contador.getNeutrales()
+                    );
+
+                    productosDetectados.add(new ProductoMencionesDto(
+                            contador.getNombreProducto(),
+                            contador.getTotal(),
+                            contador.getPositivos(),
+                            contador.getNegativos(),
+                            contador.getNeutrales(),
+                            total > 0 ? (contador.getTotal() * 100.0) / total : 0.0
+                    ));
+                }
+            }
+
+            // 7️⃣ Preparar respuesta
+            SesionDto sesionDto = new SesionDto(
+                    sesionGuardada.getSesionId(),
+                    LocalDateTime.now().toString(),
+                    avgScore,
+                    total,
+                    positivos,
+                    negativos,
+                    neutrales,
+                    comentariosDto
+            );
+
+            sesionDto.setProductosDetectados(productosDetectados);
+
+            System.out.println("✅ Batch CSV analizado: " + total + " textos, " + productosDetectados.size() + " productos detectados");
 
             return sesionDto;
         }
