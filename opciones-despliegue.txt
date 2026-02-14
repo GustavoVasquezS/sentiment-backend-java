@@ -139,7 +139,6 @@ RESUMEN COMPARATIVO:
 | VPS Hetzner      | ~$4-7     | Alta       | Mientras se pague  | No       |
 
 Mi recomendacion: OCI Always Free (Opcion 1) por costo $0, recursos generosos y coherencia con Oracle/ONE.
-<<<<<<< HEAD
 
 
 ==========================================================================
@@ -228,5 +227,3 @@ MAYOR IMPACTO CON MENOR ESFUERZO:
 - Docker Compose (~2 horas)
 - Exportar CSV desde dashboard (~2 horas)
 - Paginacion en historial (~1 hora)
-=======
->>>>>>> f6277b8 (docs: opciones de despliegue online (OCI, Railway, Render, Fly.io, VPS))
