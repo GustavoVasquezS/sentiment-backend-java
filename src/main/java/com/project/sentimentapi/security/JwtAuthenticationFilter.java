@@ -36,7 +36,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 requestPath.contains("/usuario/login") ||
                         (requestPath.contains("/usuario") && "POST".equals(method) && !requestPath.contains("/login")) ||
                         requestPath.contains("/sentiment/analyze") ||
-                        (requestPath.contains("/categoria") && "GET".equals(method));
+                        requestPath.contains("/debug/health");
 
         if (isPublicRoute) {
             System.out.println("✅ Ruta pública - Sin validación JWT");

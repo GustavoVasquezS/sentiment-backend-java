@@ -18,6 +18,16 @@ import java.util.Map;
     @RequestMapping("/debug")
     public class DebugController {
 
+        /**
+         * Healthcheck público para Railway
+         */
+        @GetMapping("/health")
+        public ResponseEntity<?> health() {
+            Map<String, String> response = new HashMap<>();
+            response.put("status", "UP");
+            return ResponseEntity.ok(response);
+        }
+
         @Autowired
         private UserRepository userRepository;
 
