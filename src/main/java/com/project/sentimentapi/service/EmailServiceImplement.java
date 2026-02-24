@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -17,6 +18,7 @@ public class EmailServiceImplement implements EmailService {
     @Value("${app.frontend.url:http://localhost:5173}")
     private String frontendUrl;
 
+    @Async
     @Override
     public void sendRecoveryEmail(String to, String token) {
         try {
