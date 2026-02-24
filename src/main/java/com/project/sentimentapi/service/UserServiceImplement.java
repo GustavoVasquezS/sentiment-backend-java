@@ -138,7 +138,7 @@ public class UserServiceImplement implements UserService {
 
         // Actualizar contraseña y limpiar token
         String nuevaClaveHasheada = BCrypt.hashpw(nuevaContrasena, BCrypt.gensalt());
-        usuario.setContraseña(nuevaClaveHasheada);
+        usuario.setContrasena(nuevaClaveHasheada);
         usuario.setResetToken(null);
         usuario.setTokenExpiry(null);
         userRepository.save(usuario);
