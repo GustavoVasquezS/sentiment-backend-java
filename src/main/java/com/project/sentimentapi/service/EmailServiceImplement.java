@@ -18,6 +18,9 @@ public class EmailServiceImplement implements EmailService {
     @Value("${app.frontend.url:http://localhost:5173}")
     private String frontendUrl;
 
+    @Value("${spring.mail.username}")
+    private String mailFrom;
+
     @Async
     @Override
     public void sendRecoveryEmail(String to, String token) {
@@ -42,7 +45,7 @@ public class EmailServiceImplement implements EmailService {
             helper.setTo(to);
             helper.setSubject("Recuperación de contraseña - SentimentAPI");
             helper.setText(htmlContent, true);
-            helper.setFrom("sentimentapi.noreply@gmail.com");
+            helper.setFrom(mailFrom);
 
             mailSender.send(message);
             System.out.println("✅ Email de recuperación enviado a: " + to);
