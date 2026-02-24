@@ -1,25 +1,21 @@
 package com.project.sentimentapi.service;
 
-import jakarta.mail.MessagingException;
-import jakarta.mail.internet.MimeMessage;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.mail.javamail.JavaMailSender;
-import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
+import org.springframework.web.reactive.function.client.WebClient;
+
+import java.util.List;
+import java.util.Map;
 
 @Service
 public class EmailServiceImplement implements EmailService {
 
-    @Autowired
-    private JavaMailSender mailSender;
+    @Value("${resend.api-key}")
+    private String resendApiKey;
 
     @Value("${app.frontend.url:http://localhost:5173}")
     private String frontendUrl;
-
-    @Value("${spring.mail.username}")
-    private String mailFrom;
 
     @Async
     @Override
@@ -40,18 +36,27 @@ public class EmailServiceImplement implements EmailService {
                     + "<p style='color: #888;'>Si no solicitaste este cambio, ignora este correo.</p>"
                     + "</div>";
 
-            MimeMessage message = mailSender.createMimeMessage();
-            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
-            helper.setTo(to);
-            helper.setSubject("Recuperación de contraseña - SentimentAPI");
-            helper.setText(htmlContent, true);
-            helper.setFrom(mailFrom);
+            Map<String, Object> body = Map.of(
+                    "from", "onboarding@resend.dev",
+                    "to", List.of(to),
+                    "subject", "Recuperación de contraseña - SentimentAPI",
+                    "html", htmlContent
+            );
 
-            mailSender.send(message);
-            System.out.println("✅ Email de recuperación enviado a: " + to);
+            WebClient client = WebClient.create("https://api.resend.com");
+            String response = client.post()
+                    .uri("/emails")
+                    .header("Authorization", "Bearer " + resendApiKey)
+                    .header("Content-Type", "application/json")
+                    .bodyValue(body)
+                    .retrieve()
+                    .bodyToMono(String.class)
+                    .block();
 
-        } catch (MessagingException e) {
-            System.err.println("❌ Error al enviar email: " + e.getMessage());
+            System.out.println("✅ Email de recuperación enviado a: " + to + " | Resend response: " + response);
+
+        } catch (Exception e) {
+            System.err.println("❌ Error al enviar email via Resend: " + e.getMessage());
             throw new RuntimeException("Error al enviar el correo de recuperación");
         }
     }
