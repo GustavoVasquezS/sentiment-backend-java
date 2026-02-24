@@ -14,9 +14,11 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 @Service
 public class UserServiceImplement implements UserService {
@@ -31,6 +33,9 @@ public class UserServiceImplement implements UserService {
 
     @Autowired
     private ApplicationEventPublisher eventPublisher;
+
+    @Autowired
+    private EmailService emailService;
 
     @Override
     @Transactional
@@ -105,5 +110,39 @@ public class UserServiceImplement implements UserService {
         }
 
         return Optional.empty();
+    }
+
+    @Override
+    public void forgotPassword(String email) {
+        User usuario = userRepository.findByCorreo(email)
+                .orElseThrow(() -> new RuntimeException("No existe una cuenta con ese correo"));
+
+        // Generar token único y establecer expiración de 30 minutos
+        String token = UUID.randomUUID().toString();
+        usuario.setResetToken(token);
+        usuario.setTokenExpiry(LocalDateTime.now().plusMinutes(30));
+        userRepository.save(usuario);
+
+        System.out.println("🔑 Token de recuperación generado para: " + email);
+        emailService.sendRecoveryEmail(email, token);
+    }
+
+    @Override
+    public void resetPassword(String token, String nuevaContrasena) {
+        User usuario = userRepository.findByResetToken(token)
+                .orElseThrow(() -> new RuntimeException("Token inválido o no encontrado"));
+
+        if (usuario.getTokenExpiry() == null || usuario.getTokenExpiry().isBefore(LocalDateTime.now())) {
+            throw new RuntimeException("El token ha expirado. Solicita un nuevo correo de recuperación");
+        }
+
+        // Actualizar contraseña y limpiar token
+        String nuevaClaveHasheada = BCrypt.hashpw(nuevaContrasena, BCrypt.gensalt());
+        usuario.setContraseña(nuevaClaveHasheada);
+        usuario.setResetToken(null);
+        usuario.setTokenExpiry(null);
+        userRepository.save(usuario);
+
+        System.out.println("✅ Contraseña restablecida para: " + usuario.getCorreo());
     }
 }

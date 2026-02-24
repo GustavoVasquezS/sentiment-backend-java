@@ -94,6 +94,12 @@
             <scope>test</scope>
         </dependency>
 
+        <!-- EMAIL -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-mail</artifactId>
+        </dependency>
+
         <!-- JWT DEPENDENCIES -->
         <dependency>
             <groupId>io.jsonwebtoken</groupId>

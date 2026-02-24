@@ -37,3 +37,7 @@ app.log
 body.json
 test.csv
 token.txt
+
+### Local environment overrides (credentials) ###
+application-local.properties
+*.env

@@ -6,6 +6,7 @@ import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Entity
@@ -27,6 +28,12 @@ public class User {
     private String correo;
     @Column(nullable = false)
     private String contrasena;
+
+    @Column(name = "reset_token")
+    private String resetToken;
+
+    @Column(name = "token_expiry")
+    private LocalDateTime tokenExpiry;
 
     @ManyToMany(cascade = CascadeType.ALL,fetch = FetchType.LAZY)
     @JoinTable(name = "User_rol",joinColumns = @JoinColumn(name = "user_id", referencedColumnName = "usuario_id"),
